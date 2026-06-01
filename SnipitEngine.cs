@@ -110,8 +110,8 @@ namespace Snipit
             }
 
             // Merge into the live document as one undo step.
-            var record = targetDoc.UndoUtil.CreateGenericObjectEvent("Drop Snipit", added);
-            targetDoc.UndoServer.PushUndoRecord(record);
+            //var record = targetDoc.UndoUtil.CreateGenericObjectEvent("Drop Snipit", added);
+            //targetDoc.UndoServer.PushUndoRecord(record);
 
             foreach (var obj in added)
                 targetDoc.AddObject(obj, false);
