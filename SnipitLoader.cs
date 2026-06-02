@@ -53,14 +53,32 @@ namespace Snipit
                 return;
 
             toolbar.Items.Add(new ToolStripSeparator());
-            toolbar.Items.Add(new ToolStripButton
+            var button =  new ToolStripButton 
             {
                 Text = "Snipit",
                 DisplayStyle = ToolStripItemDisplayStyle.Image,  
                 Image = loadedImage,
-                ToolTipText = "Snipit",
-                Font = new Font("Segoe UI", 8f, FontStyle.Bold)
-            });
+                ToolTipText = "Snipit"                
+            };
+            button.Click += OnSnipitClick;
+            toolbar.Items.Add(button);
+            
+
+        }
+
+        private static void OnSnipitClick(object sender, EventArgs e)
+        {
+            var menu = new ContextMenuStrip();
+
+            var capture = new ToolStripMenuItem("Capture Selection");
+            var deploy = new ToolStripMenuItem("Deploy Snipit");
+
+            menu.Items.Add(capture);
+            menu.Items.Add(deploy);
+
+            if (sender is ToolStripButton btn && btn.Owner != null)
+                menu.Show(btn.Owner.PointToScreen(
+                    new System.Drawing.Point(btn.Bounds.Left, btn.Bounds.Bottom)));
         }
     }
 }
