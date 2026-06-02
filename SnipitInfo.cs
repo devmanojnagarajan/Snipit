@@ -23,6 +23,6 @@ namespace Snipit
 
         public override string AuthorName => "Manoj Nagarajan";
 
-        public override string AuthorContact => "";
+        public override string AuthorContact => "manojnagarajan27@gmail.com";
     }
 }
