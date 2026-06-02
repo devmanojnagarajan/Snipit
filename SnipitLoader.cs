@@ -122,14 +122,18 @@ namespace Snipit
 
             var menu = new ContextMenuStrip();
             menu.RenderMode = ToolStripRenderMode.System;
+
             foreach (var entry in snipits)
             {
                 var captured = entry;
-                var item = new SnipitMenuItem(entry.Name);
+                var item = new ToolStripMenuItem(entry.Name);
 
-                // Left-click the row (not the x) = deploy at cursor.
+                // Left-click = deploy at cursor.
                 item.Click += (s, ev) =>
                 {
+                    // Only deploy on a left-click; right-click is handled separately.
+                    if (ev is MouseEventArgs me && me.Button == MouseButtons.Right) return;
+
                     var screenPt = Cursor.Position;
                     var clientPt = canvas.PointToClient(screenPt);
                     var canvasPt = canvas.Viewport.UnprojectPoint(clientPt);
@@ -137,17 +141,19 @@ namespace Snipit
                     SnipitEngine.Deploy(bytes, doc, canvasPt, out _);
                 };
 
-                // Click the inline x = delete (with confirm).
-                item.DeleteClicked += (s, ev) =>
+                // Right-click = show a small Delete menu.
+                item.MouseDown += (s, me) =>
                 {
+                    if (me.Button != MouseButtons.Right) return;
+
+                    // Close the deploy menu first so it doesn't fight for focus.
+                    menu.Close();
+
                     var confirm = MessageBox.Show(
                         $"Delete snipit '{captured.Name}'?", "Snipit",
                         MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                     if (confirm == DialogResult.Yes)
-                    {
                         store.Delete(captured);
-                        menu.Close(); // close so the stale list isn't shown
-                    }
                 };
 
                 menu.Items.Add(item);
