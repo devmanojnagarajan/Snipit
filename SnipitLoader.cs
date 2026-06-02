@@ -1,67 +1,66 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Grasshopper;
 using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
 using Grasshopper.Kernel;
 
 namespace Snipit
 {
+    /// <summary>
+    /// Adds the Snipit button to Grasshopper's canvas toolbar (the strip named
+    /// "CanvasToolbar" that holds the zoom controls). Event-driven, no polling:
+    ///   PriorityLoad -> CanvasCreated -> editor.Shown -> add button.
+    /// </summary>
     public class SnipitLoader : GH_AssemblyPriority
     {
-        private static Timer _timer;
-
         public override GH_LoadingInstruction PriorityLoad()
         {
-            _timer = new Timer { Interval = 300 };
-            _timer.Tick += TryInject;
-            _timer.Start();
+            Instances.CanvasCreated += OnCanvasCreated;
             return GH_LoadingInstruction.Proceed;
         }
 
-        private static void TryInject(object sender, EventArgs e)
+        private static void OnCanvasCreated(GH_Canvas canvas)
         {
+            Instances.CanvasCreated -= OnCanvasCreated;
+
             var editor = Instances.DocumentEditor;
             if (editor == null) return;
 
-            var toolbar = FindCanvasToolbar(editor);
+            editor.Shown += OnEditorShown;
+        }
+
+        private static void OnEditorShown(object sender, EventArgs e)
+        {
+            var editor = sender as GH_DocumentEditor;
+            if (editor == null) return;
+            editor.Shown -= OnEditorShown;
+
+            var toolbar = editor.Controls.Find("CanvasToolbar", true)
+                .OfType<ToolStrip>()
+                .FirstOrDefault();
             if (toolbar == null) return;
 
-            _timer.Stop();
-            AddSnipitButton(toolbar);
-        }
+            var loadedBitmap = System.Reflection.Assembly
+                                .GetExecutingAssembly()
+                                .GetManifestResourceStream("Snipit.Resource.icon.png");
+            Image loadedImage = loadedBitmap != null ? new Bitmap(loadedBitmap) : null;
 
-        private static ToolStrip FindCanvasToolbar(Control parent)
-        {
-            foreach (Control c in parent.Controls)
-            {
-                if (c is ToolStrip ts && !(c is MenuStrip)
-                    && ts.Items.OfType<ToolStripComboBox>().Any())
-                    return ts;
-
-                var nested = FindCanvasToolbar(c);
-                if (nested != null) return nested;
-            }
-            return null;
-        }
-
-        private static void AddSnipitButton(ToolStrip toolbar)
-        {
             if (toolbar.Items.OfType<ToolStripButton>().Any(b => b.Text == "Snipit"))
                 return;
 
             toolbar.Items.Add(new ToolStripSeparator());
-
-            var button = new ToolStripButton
+            toolbar.Items.Add(new ToolStripButton
             {
                 Text = "Snipit",
-                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                DisplayStyle = ToolStripItemDisplayStyle.Image,  
+                Image = loadedImage,
                 ToolTipText = "Snipit",
                 Font = new Font("Segoe UI", 8f, FontStyle.Bold)
-            };
-            button.Click += (s, e) => { /* functionality added later */ };
-            toolbar.Items.Add(button);
+            });
         }
     }
 }
