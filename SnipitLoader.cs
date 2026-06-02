@@ -71,7 +71,12 @@ namespace Snipit
             var menu = new ContextMenuStrip();
 
             var capture = new ToolStripMenuItem("Capture Selection");
+            capture.Click += OnCapture;
+
             var deploy = new ToolStripMenuItem("Deploy Snipit");
+            deploy.Click += OnDeploy;
+
+
 
             menu.Items.Add(capture);
             menu.Items.Add(deploy);
@@ -80,5 +85,75 @@ namespace Snipit
                 menu.Show(btn.Owner.PointToScreen(
                     new System.Drawing.Point(btn.Bounds.Left, btn.Bounds.Bottom)));
         }
+
+        private static void OnCapture(object sender, EventArgs e)
+        {
+            var doc = Instances.ActiveCanvas?.Document;
+            var bytes = SnipitEngine.CaptureSelection(doc, out int count);
+            if (bytes == null)
+            {
+                MessageBox.Show("Select some components on the canvas first.", "Snipit");
+                return;
+            }
+
+            using (var dialog = new SnipitNameDialog())
+            {
+                if (dialog.ShowDialog() != DialogResult.OK) return;
+                if (string.IsNullOrWhiteSpace(dialog.SnipitName)) return;
+
+                new SnipitStore().Save("General", dialog.SnipitName, bytes);
+                MessageBox.Show($"Saved '{dialog.SnipitName}' ({count} objects).", "Snipit");
+            }
+        }
+
+        private static void OnDeploy(object sender, EventArgs e)
+        {
+            var canvas = Instances.ActiveCanvas;
+            var doc = canvas?.Document;
+            if (doc == null) return;
+
+            var store = new SnipitStore();
+            var snipits = store.ListSnipits("General");
+            if (snipits.Count == 0)
+            {
+                MessageBox.Show("No saved snipits yet.", "Snipit");
+                return;
+            }
+
+            var menu = new ContextMenuStrip();
+            menu.RenderMode = ToolStripRenderMode.System;
+            foreach (var entry in snipits)
+            {
+                var captured = entry;
+                var item = new SnipitMenuItem(entry.Name);
+
+                // Left-click the row (not the x) = deploy at cursor.
+                item.Click += (s, ev) =>
+                {
+                    var screenPt = Cursor.Position;
+                    var clientPt = canvas.PointToClient(screenPt);
+                    var canvasPt = canvas.Viewport.UnprojectPoint(clientPt);
+                    var bytes = store.Load(captured);
+                    SnipitEngine.Deploy(bytes, doc, canvasPt, out _);
+                };
+
+                // Click the inline x = delete (with confirm).
+                item.DeleteClicked += (s, ev) =>
+                {
+                    var confirm = MessageBox.Show(
+                        $"Delete snipit '{captured.Name}'?", "Snipit",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (confirm == DialogResult.Yes)
+                    {
+                        store.Delete(captured);
+                        menu.Close(); // close so the stale list isn't shown
+                    }
+                };
+
+                menu.Items.Add(item);
+            }
+            menu.Show(Cursor.Position);
+        }
+
     }
 }
