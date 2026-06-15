@@ -13,8 +13,24 @@ namespace Snipit
     {
         public override string Name => "Snipit";
 
-        // Plugin icon (24x24). Return null for now; swap in a real bitmap later.
-        public override Bitmap Icon => null;
+        // Plugin icon (24x24), scaled down from the embedded 512x512 resource.
+        private static Bitmap _icon;
+        public override Bitmap Icon
+        {
+            get
+            {
+                if (_icon == null)
+                {
+                    var stream = typeof(SnipitInfo).Assembly
+                        .GetManifestResourceStream("Snipit.Resource.icon.png");
+                    if (stream != null)
+                        using (stream)
+                        using (var full = new Bitmap(stream))
+                            _icon = new Bitmap(full, 24, 24);
+                }
+                return _icon;
+            }
+        }
 
         public override string Description =>
             "Save and deploy reusable Grasshopper component snippets across script files.";

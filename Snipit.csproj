@@ -19,8 +19,11 @@
     <!-- Specifies information for Assembly and Yak -->
     <Version>1.0.0</Version>
     <Title>Snipit</Title>
-    <Company>Snipit Authors</Company>
-    <Description>Description of Snipit</Description>
+    <Authors>Manoj Nagarajan</Authors>
+    <Company>Manoj Nagarajan</Company>
+    <Copyright>Copyright © 2026 Manoj Nagarajan</Copyright>
+    <Description>Save and deploy reusable Grasshopper component snippets across script files.</Description>
+    <PackageProjectUrl>https://github.com/devmanojnagarajan/Snipit</PackageProjectUrl>
   </PropertyGroup>
   
   <ItemGroup>

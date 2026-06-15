@@ -1,0 +1,21 @@
+---
+name: snipit
+version: 1.0.0
+authors:
+  - Manoj Nagarajan
+description: >
+  Save sets of Grasshopper components once, reuse them anywhere. Snipit captures
+  any selection of components with their wiring intact and deploys them onto any
+  canvas, in any file, from a button in the Grasshopper toolbar. Each snipit is
+  stored as its own file under %AppData%\Snipit, so your library is robust, easy
+  to back up, and simple to move between machines.
+url: https://github.com/devmanojnagarajan/Snipit
+icon: icon.png
+keywords:
+  - grasshopper
+  - snippets
+  - productivity
+  - workflow
+  - library
+  - reuse
+  - clipboard

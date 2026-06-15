@@ -1,8 +1,13 @@
 bin/
 obj/
+dist/
 .vs/
 *.user
 *.suo
 *.gha
 *.yak
-Resource/
+Resource/*
+!Resource/icon.png
+
+# Personal publishing notes, not part of the project
+FOOD4RHINO.md
